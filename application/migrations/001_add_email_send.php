@@ -26,15 +26,17 @@ class Migration_Add_Email_Send extends CI_Migration {
                         'receiver_content' => array(
                                         'type' => 'VARCHAR',
                                         'constraint' => '200',
-                                ),                                    
+                                )                                    
                    
 		));
                  $this->dbforge->add_key('receiver_id', TRUE);
-		$this->dbforge->create_table('email_send');
+		$this->dbforge->create_table('email_send');                
+                
+                
 	}
 
 	public function down()
 	{
-		$this->dbforge->drop_table('email_send');
+		$this->dbforge->drop_table('email_send');                
 	}
 }

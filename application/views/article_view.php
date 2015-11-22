@@ -44,6 +44,7 @@
         <?php //$this->load->helper(array('form', 'url')); $this->load->library('form_validation');
         echo validation_errors(); ?>
             </form>
+        
     </body>    
                 
 </html>
