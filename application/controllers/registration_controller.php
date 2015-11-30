@@ -33,7 +33,7 @@ class Registration_controller extends CI_Controller {
                 $this->load->model('users_model');
                 $this->users_model->insert_users($user_data);
             } else {
-                echo 'activation email was not sent successfully.';
+                echo 'Activation email was not sent successfully.';
             }
             // $this->load->view('registration_view');
         } else {
@@ -56,7 +56,7 @@ class Registration_controller extends CI_Controller {
         $this->email->set_newline("\r\n");
         $this->email->from('mimimama686@gmail.com', 'Dani');
         $this->email->to($this->input->post('email'));
-        $this->email->subject('Admin');
+        $this->email->subject('Activation link');
         $this->email->message(site_url('registration_controller/verify/' . $key));
 
         if ($this->email->send()) {

@@ -7,7 +7,8 @@ class Article_Controller extends CI_Controller {
         //$this->load->view('article_view');
     }
 
-    function show_articles() {        
+    function show_articles() {
+        $this->cookie();
         $this->config->load('pagination', TRUE);
         $per_page = $this->config->item('per_page', 'pagination');
         $row = $this->uri->segment(3);
@@ -17,12 +18,14 @@ class Article_Controller extends CI_Controller {
     }
 
     function show_single_article($article_id) {
+        $this->cookie();
         $this->load->model('article_model');
         $article['row'] = $this->article_model->show_article($article_id);
         $this->load->view('single_article_view', $article);
     }
 
     function show_update($article_id) {
+        $this->cookie();
         $this->is_admin();
         $this->load->model('article_model');
         $article['row'] = $this->article_model->show_article($article_id);
@@ -32,6 +35,7 @@ class Article_Controller extends CI_Controller {
     }
 
     function delete_article($article_id) {
+        $this->cookie();
         $this->is_admin();
         $this->load->model('article_model');
         $this->article_model->delete($article_id);
@@ -39,7 +43,7 @@ class Article_Controller extends CI_Controller {
     }
 
     public function upload_image() {
-        
+
         $is_update = $this->session->userdata('update');
 
         if ($is_update == 'yes' && $this->input->post('delete_photo') == "checked") {
@@ -130,6 +134,7 @@ class Article_Controller extends CI_Controller {
 //    }
 
     function insert_article() {
+        $this->cookie();
         $this->is_logged();
         if ($this->validate()) {
 
@@ -181,6 +186,7 @@ class Article_Controller extends CI_Controller {
     }
 
     function is_logged() {
+        $this->cookie();
         if ($_SESSION['username'] == '') {
             echo 'Login to see.';
             ?> <a href="<?php echo site_url('login_controller/') ?>">Login</a><br/> <?php
@@ -191,12 +197,21 @@ class Article_Controller extends CI_Controller {
     }
 
     function is_admin() {
+        $this->cookie();
         if ($this->is_logged()) {
             if ($_SESSION['is_admin'] == 0) {
                 echo 'Access denied for normal users.';
                 ?> <a href="<?php echo site_url('article_controller/show_articles') ?>">Return home</a><br/> <?php
                 exit();
             }
+        }
+    }
+
+    function cookie() {
+        if (isset($_COOKIE['username'])) {
+            $_SESSION['username'] = $_COOKIE['username'];
+            $this->load->model('users_model');
+            $_SESSION['is_admin'] = $this->users_model->is_admin($_SESSION['username']);
         }
     }
 

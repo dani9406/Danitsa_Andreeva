@@ -43,9 +43,13 @@ class Login_controller extends CI_Controller {
         $password = $this->input->post('password');
         $this->load->model('users_model');
         if ($this->users_model->is_active($username, $password)) {
-            $is_admin = $this->users_model->is_admin($username, $password);
+            $is_admin = $this->users_model->is_admin($username);
             $_SESSION['username'] = $username;
             $_SESSION['is_admin'] = $is_admin;
+            if (isset($_POST['remember'])) {
+                $this->load->helper('cookie');
+                $this->input->set_cookie('username', $username, 60);
+            }
             redirect(site_url("article_controller/show_articles"));
             return true;
         } else {

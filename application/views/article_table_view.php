@@ -7,7 +7,7 @@
     </head>
     <body>
         <?php
-        if ($_SESSION['username'] != '') {
+        if (isset($_SESSION['username'])) {
             echo 'You are logged in as: ' . $_SESSION['username'] . '<br/>';
             echo 'You are : ' . $_SESSION['is_admin'] . '<br/>';
             ?><a href="<?php echo site_url('login_controller/logout/') ?>">Logout</a><br/><?php
@@ -25,7 +25,7 @@
                 </tr>
             </thead>
             <tbody>
-<?php foreach ($row as $rows) : ?>
+                <?php foreach ($row as $rows) : ?>
                     <tr class="success">
                         <td><?php echo $rows->article_title; ?></td>
                         <td><?php echo $rows->article_author; ?></td>
@@ -34,10 +34,10 @@
                         <td> <a href="<?php echo site_url('article_controller/delete_article/' . $rows->article_id) ?>">Delete</a></td>
                         <td> <a href="<?php echo site_url('article_controller/show_update/' . $rows->article_id) ?>">Update</a></td>
                     </tr>
-<?php endforeach; ?>
+                <?php endforeach; ?>
 
             </tbody>
         </table>
-<?php echo $this->pagination->create_links(); ?>
+        <?php echo $this->pagination->create_links(); ?>
     </body>
 </html>

@@ -6,7 +6,7 @@ class User_managment_controller extends CI_Controller {
     public function __construct() {
         parent::__construct();
         if ($_SESSION['is_admin'] != 1) {
-            echo 'Only administrator can see this page';
+            echo 'Access denied. </br> Only administrator can see this page';
             ?> <a href="<?php echo site_url('login_controller/') ?>">Login</a><br/> <?php
             exit();
         }

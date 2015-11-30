@@ -44,8 +44,8 @@ class Users_model extends CI_Model {
         }
     }
 
-    function is_admin($username, $password) {
-        $result = $this->db->query("SELECT is_admin FROM `users` WHERE `username` = '$username' and `password` = '$password'")->row();
+    function is_admin($username) {
+        $result = $this->db->query("SELECT is_admin FROM `users` WHERE `username` = '$username'")->row();
         $admin = (string) $result->is_admin;
         return $admin;
     }
