@@ -4,11 +4,7 @@ class Registration_controller extends CI_Controller {
 
     public function __construct() {
         parent::__construct();
-        if ($this->session->userdata('username') != '') {
-            echo 'You are already logged in.';
-            ?> <a href="<?php echo site_url('login_controller/logout') ?>">Logout</a><br/> <?php
-            exit();
-        }
+        $this->is_logged();
     }
 
     function index() {
@@ -27,7 +23,7 @@ class Registration_controller extends CI_Controller {
                 $user_data = array(
                     'username' => $this->input->post('username'),
                     'email' => $this->input->post('email'),
-                    'password' => $this->input->post('password'),
+                    'password' => md5($this->input->post('password')),
                     'email_verification_code' => $key
                 );
                 $this->load->model('users_model');
@@ -73,6 +69,14 @@ class Registration_controller extends CI_Controller {
             echo 'your account is activated.';
         } else {
             echo 'activation failed.';
+        }
+    }
+
+    function is_logged() {
+        if (isset($_SESSION['username'])) {
+            echo 'You are already logged in.';
+            ?> <a href="<?php echo site_url('login_controller/logout') ?>">Logout</a><br/> <?php
+            exit();
         }
     }
 

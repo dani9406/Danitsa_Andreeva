@@ -6,6 +6,36 @@
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js" integrity="sha512-K1qjQ+NcF2TYO/eI3M6v8EiNYZfA95pQumfvcVrTHtwQVDG+aHRqLi/ETn2uB+1JqwYqVG3LIvdm9lj6imS/pQ==" crossorigin="anonymous"></script>
     </head>
     <body>
+        <nav class="navbar navbar-inverse">
+            <div class="container-fluid">
+                <div class="navbar-header">
+                    <a class="navbar-brand" href="">Blog</a>
+                </div>
+                <div>
+                    <ul class="nav navbar-nav">
+                        <li><a href="<?php echo site_url('article_controller/show_articles'); ?>">Articles</a></li>                        
+                        <li><a href="<?php echo site_url('article_controller/insert_article'); ?>">Insert article</a></li>
+                        <li><a href="<?php echo site_url('email_controller/'); ?>">Send email</a></li>
+                        <li><a href="<?php echo site_url('user_managment_controller/'); ?>">User management</a></li>
+                    </ul>
+                    <?php if (isset($_SESSION['username'])) { ?>
+                        <ul class="nav navbar-nav navbar-right">
+                            <li><a href=""><span class="glyphicon glyphicon-user"></span><?php echo '&nbsp' . $_SESSION['username']; ?></a></li>
+                            <li><a href="<?php echo site_url('login_controller/logout'); ?>"><span class="glyphicon glyphicon-log-out"></span> Logout</a></li>
+                        </ul>
+                    <?php } else { ?>
+                        <ul class="nav navbar-nav navbar-right">
+                            <li><a href="<?php echo site_url('login_controller/login'); ?>"><span class="glyphicon glyphicon-log-in"></span> Login</a></li>
+                        </ul>
+                    <?php } ?>
+                </div>
+            </div>
+        </nav>    
+        <?php
+        if (isset($login_error)) {
+            echo $login_error;
+        }
+        ?>
         <form class="form-horizontal" role="form" action="<?php echo base_url(); ?>login_controller/validate" method="post">
 
             <div class="form-group">
@@ -33,7 +63,8 @@
                     <button type="submit" class="btn btn-default" name="submit">Login</button>
                 </div>
             </div>
-            <?php //$this->load->helper(array('form', 'url')); $this->load->library('form_validation');
+            <?php
+            //$this->load->helper(array('form', 'url')); $this->load->library('form_validation');
             echo validation_errors();
             ?>
         </form>

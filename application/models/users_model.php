@@ -32,9 +32,8 @@ class Users_model extends CI_Model {
         }
     }
 
-    function is_active($username, $password) {
+    function is_active($username) {
         $this->db->where('username', $username);
-        $this->db->where('password', $password);
         $this->db->where('is_active', 1);
         $query = $this->db->get('users');
         if ($query->num_rows() == 1) {

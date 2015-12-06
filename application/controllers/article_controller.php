@@ -3,12 +3,16 @@ session_start();
 
 class Article_Controller extends CI_Controller {
 
+    public function __construct() {
+        parent::__construct();
+        $this->cookie();
+    }
+
     function index() {
         //$this->load->view('article_view');
     }
 
     function show_articles() {
-        $this->cookie();
         $this->config->load('pagination', TRUE);
         $per_page = $this->config->item('per_page', 'pagination');
         $row = $this->uri->segment(3);
@@ -18,24 +22,60 @@ class Article_Controller extends CI_Controller {
     }
 
     function show_single_article($article_id) {
-        $this->cookie();
         $this->load->model('article_model');
-        $article['row'] = $this->article_model->show_article($article_id);
-        $this->load->view('single_article_view', $article);
+        $data['row'] = $this->article_model->show_article($article_id);
+        $this->load->model('comments_model');
+        $data['comments'] = $this->comments_model->show_comments($article_id);
+        $this->load->view('single_article_view', $data);
     }
 
     function show_update($article_id) {
-        $this->cookie();
         $this->is_admin();
         $this->load->model('article_model');
-        $article['row'] = $this->article_model->show_article($article_id);
-        $_SESSION['is_up_to_date'] = true;
+
+        $old_article_data = $this->article_model->show_article($article_id);
+        if ($this->input->post()) {
+            if ($this->validate()) {
+                $this->load->helper('date');
+                $time = now();
+                $datestring = "%Y/%m/%d/%G:%i";
+                $article_date = mdate($datestring, $time);
+
+                $article_data = array(
+                    'article_title' => $this->input->post('article_title'),
+                    'article_content' => $this->input->post('article_content'),
+                    'article_author' => $this->input->post('article_author'),
+                    'article_image' => $_SESSION['image_path'],
+                    'article_date' => $article_date,
+                );
+                $update_id = $_SESSION['update_id'];
+                $this->article_model->update($article_data, $update_id);
+                $this->session->set_userdata('update', 'no');
+                redirect(site_url("article_controller/show_articles"));
+            } else {
+                $article['row'] = (object) $this->input->post();
+                $article['row']->article_image = $old_article_data->article_image;
+            }
+        } else {
+            $article['row'] = $old_article_data;
+        }
+
+        $this->session->set_userdata('update', 'yes');
         $_SESSION['update_id'] = $article_id;
         $this->load->view('update_article_view', $article);
     }
 
+//    function show_update($article_id) {
+//        $this->cookie();
+//        $this->is_admin();
+//        $this->load->model('article_model');
+//        $article['row'] = $this->article_model->show_article($article_id);
+//        $_SESSION['is_up_to_date'] = true;
+//        $_SESSION['update_id'] = $article_id;
+//        $this->load->view('update_article_view', $article);
+//    }
+
     function delete_article($article_id) {
-        $this->cookie();
         $this->is_admin();
         $this->load->model('article_model');
         $this->article_model->delete($article_id);
@@ -78,32 +118,33 @@ class Article_Controller extends CI_Controller {
                 }
                 return true;
             } else {
-                $this->form_validation->set_message('validate_image', $this->upload->display_errors());
+                $this->form_validation->set_message('upload_image', $this->upload->display_errors());
                 return false;
             }
         }
     }
 
     function validate() {
-        $this->form_validation->set_rules('title', 'Title', 'trim|required|max_length[20]');
-        $this->form_validation->set_rules('content', 'Content', 'trim|required|max_length[200]');
-        $this->form_validation->set_rules('author', 'Author', 'trim|required|max_length[15]');
-        //$this->form_validation->set_rules('image', 'Image', 'callback_validate_image');
+        $this->form_validation->set_rules('article_title', 'Article', 'trim|required|max_length[20]');
+        $this->form_validation->set_rules('article_content', 'Content', 'trim|required|max_length[300]');
+        $this->form_validation->set_rules('article_author', 'Author', 'trim|required|max_length[25]');
 
         if ($this->form_validation->run()) {
             if ($this->upload_image()) {
                 return TRUE;
             } else {
-                echo 'You need to upload an image.';
+                echo 'You need to upload a photo.';
             }
         } else {
             return FALSE;
         }
-        //$this->load->model('article_model');
-        // $this->load->helper('date');
-        //// $time = now();
-        //  $datestring = "%Y/%m/%d/%G:%i";
-        //  $article_date = mdate($datestring, $time);
+    }
+
+    //$this->load->model('article_model');
+    // $this->load->helper('date');
+    //// $time = now();
+    //  $datestring = "%Y/%m/%d/%G:%i";
+    //  $article_date = mdate($datestring, $time);
 //               
 //                $article_data = array (
 //                    'article_title' => $this->input->post('title'),
@@ -115,8 +156,6 @@ class Article_Controller extends CI_Controller {
 //                $this->article_model->article_details($article_data);
 //         }          
 //        $this->load->view('article_view');
-    }
-
 //    public function validate_image() {
 //        $is_update = isset($_SESSION['is_up_to_date']);
 //        if ($is_update == true) {
@@ -134,61 +173,62 @@ class Article_Controller extends CI_Controller {
 //    }
 
     function insert_article() {
-        $this->cookie();
-        $this->is_logged();
-        if ($this->validate()) {
+        if ($this->is_logged()) {
+            $this->session->set_userdata('update', 'no');
+            if ($this->validate()) {
 
-            $this->load->model('article_model');
+                $this->load->model('article_model');
 
-            $this->load->helper('date');
-            $time = now();
-            $datestring = "%Y/%m/%d/%G:%i";
-            $article_date = mdate($datestring, $time);
+                $this->load->helper('date');
+                $time = now();
+                $datestring = "%Y/%m/%d/%G:%i";
+                $article_date = mdate($datestring, $time);
 
-            $article_data = array(
-                'article_title' => $this->input->post('title'),
-                'article_content' => $this->input->post('content'),
-                'article_author' => $this->input->post('author'),
-                'article_image' => $_SESSION['image_path'],
-                'article_date' => $article_date,
-            );
-            $this->article_model->article_details($article_data);
-            $this->show_articles();
-        } else {
-            $this->load->view('article_view');
+                $article_data = array(
+                    'article_title' => $this->input->post('article_title'),
+                    'article_content' => $this->input->post('article_content'),
+                    'article_author' => $this->input->post('article_author'),
+                    'article_image' => $_SESSION['image_path'],
+                    'article_date' => $article_date,
+                );
+                $this->article_model->article_details($article_data);
+
+                $this->show_articles();
+            } else {
+                $this->load->view('article_view');
+            }
         }
     }
 
-    function update() {
-        if ($this->validate()) {
-
-            $this->load->model('article_model');
-
-            $this->load->helper('date');
-            $time = now();
-            $datestring = "%Y/%m/%d/%G:%i";
-            $article_date = mdate($datestring, $time);
-
-            $article_data = array(
-                'article_title' => $this->input->post('title'),
-                'article_content' => $this->input->post('content'),
-                'article_author' => $this->input->post('author'),
-                'article_image' => $_SESSION['image_path'],
-                'article_date' => $article_date,
-            );
-            $update_id = $_SESSION['update_id'];
-            $this->article_model->update($article_data, $update_id);
-            $_SESSION['is_up_to_date'] = false;
-            $this->show_articles();
-        } else {
-            echo 'Update is not up to date.';
-        }
-    }
+//    function update() {
+//        if ($this->validate()) {
+//
+//            $this->load->model('article_model');
+//
+//            $this->load->helper('date');
+//            $time = now();
+//            $datestring = "%Y/%m/%d/%G:%i";
+//            $article_date = mdate($datestring, $time);
+//
+//            $article_data = array(
+//                'article_title' => $this->input->post('title'),
+//                'article_content' => $this->input->post('content'),
+//                'article_author' => $this->input->post('author'),
+//                'article_image' => $_SESSION['image_path'],
+//                'article_date' => $article_date,
+//            );
+//            $update_id = $_SESSION['update_id'];
+//            $this->article_model->update($article_data, $update_id);
+//            $_SESSION['is_up_to_date'] = false;
+//            $this->show_articles();
+//        } else {
+//            echo 'Update is not up to date.';
+//        }
+//    }
 
     function is_logged() {
-        $this->cookie();
-        if ($_SESSION['username'] == '') {
-            echo 'Login to see.';
+        if (!isset($_SESSION['username'])) {
+            echo 'You must login first. <br/>';
             ?> <a href="<?php echo site_url('login_controller/') ?>">Login</a><br/> <?php
             exit();
         } else {
@@ -197,7 +237,6 @@ class Article_Controller extends CI_Controller {
     }
 
     function is_admin() {
-        $this->cookie();
         if ($this->is_logged()) {
             if ($_SESSION['is_admin'] == 0) {
                 echo 'Access denied for normal users.';
@@ -208,10 +247,31 @@ class Article_Controller extends CI_Controller {
     }
 
     function cookie() {
-        if (isset($_COOKIE['username'])) {
-            $_SESSION['username'] = $_COOKIE['username'];
-            $this->load->model('users_model');
-            $_SESSION['is_admin'] = $this->users_model->is_admin($_SESSION['username']);
+        if (!isset($_SESSION['username'])) {
+            if (isset($_COOKIE['username'])) {
+                $this->load->model('users_model');
+                if ($this->users_model->is_active($_COOKIE['username'])) {
+                    $_SESSION['username'] = $_COOKIE['username'];
+                    $this->load->model('users_model');
+                    $_SESSION['is_admin'] = $this->users_model->is_admin($_SESSION['username']);
+                } else {
+                    echo 'You are not an active user.';
+                    exit();
+                }
+            }
+        }
+    }
+
+    function add_comment($article_id) {
+        if ($this->input->post('comment') != '') {
+            $comment = array(
+                'article_id' => $article_id,
+                'username' => $_SESSION['username'],
+                'comment' => $this->input->post('comment'),
+            );
+            $this->load->model('comments_model');
+            $this->comments_model->add_comment($comment);
+            redirect(site_url('article_controller/show_single_article/' . $article_id));
         }
     }
 

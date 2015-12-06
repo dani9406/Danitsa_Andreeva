@@ -5,8 +5,9 @@ class Email_controller extends CI_Controller {
 
     public function __construct() {
         parent::__construct();
-        if ($_SESSION['username'] == '') {
-            echo 'Access denied.';
+        $this->cookie();
+        if (!isset($_SESSION['username'])) {
+            echo 'Access denied. <br/>';
             ?> <a href="<?php echo site_url('login_controller/') ?>">Login</a><br/> <?php
             exit();
         }
@@ -99,6 +100,21 @@ class Email_controller extends CI_Controller {
         } else {
             $this->form_validation->set_message('Captcha_validate', 'Wrong captcha');
             return false;
+        }
+    }
+    function cookie() {
+        if (!isset($_SESSION['username'])) {
+            if (isset($_COOKIE['username'])) {
+                $this->load->model('users_model');
+                if ($this->users_model->is_active($_COOKIE['username'])) {
+                    $_SESSION['username'] = $_COOKIE['username'];
+                    $this->load->model('users_model');
+                    $_SESSION['is_admin'] = $this->users_model->is_admin($_SESSION['username']);
+                } else {
+                    echo 'You are not an active user.';
+                    exit();
+                }
+            }
         }
     }
 

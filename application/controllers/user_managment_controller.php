@@ -5,7 +5,14 @@ class User_managment_controller extends CI_Controller {
 
     public function __construct() {
         parent::__construct();
-        if ($_SESSION['is_admin'] != 1) {
+        $this->cookie();
+        if (isset($_SESSION['is_admin'])) {
+            if ($_SESSION['is_admin'] != 1) {
+                echo 'Access denied. </br> Only administrator can see this page';
+                ?> <a href="<?php echo site_url('login_controller/') ?>">Login</a><br/> <?php
+                exit();
+            }
+        } else {
             echo 'Access denied. </br> Only administrator can see this page';
             ?> <a href="<?php echo site_url('login_controller/') ?>">Login</a><br/> <?php
             exit();
@@ -62,6 +69,22 @@ class User_managment_controller extends CI_Controller {
         $this->load->model('users_model');
         $this->users_model->delete_user($user_id);
         redirect(site_url('user_managment_controller/'));
+    }
+
+    function cookie() {
+        if (!isset($_SESSION['username'])) {
+            if (isset($_COOKIE['username'])) {
+                $this->load->model('users_model');
+                if ($this->users_model->is_active($_COOKIE['username'])) {
+                    $_SESSION['username'] = $_COOKIE['username'];
+                    $this->load->model('users_model');
+                    $_SESSION['is_admin'] = $this->users_model->is_admin($_SESSION['username']);
+                } else {
+                    echo 'You are not an active user.';
+                    exit();
+                }
+            }
+        }
     }
 
 }
